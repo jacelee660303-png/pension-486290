@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연금 자산 시뮬레이터 · TIGER 486290</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+:root{
+  --bg1:#f1f7f1; --bg2:#eef4ed; --bg3:#f6f3ea;
+  --ink:#2c3a30; --ink2:#52605a; --muted:#8a958d; --faint:#bcc7bf;
+  --line:#e4ece5; --line2:#eef4ef;
+  --card:#ffffff;
+  --sage:#5aa97e; --sage-d:#3f8a5f; --sage-t:#e8f3ec;
+  --peri:#6f8fd6; --peri-d:#4a6cc0; --peri-t:#ebf0fb;
+  --apr:#e9a94a; --apr-d:#c98a36; --apr-t:#fbf1dd;
+  --red:#e06a6a; --red-d:#c24a4a; --red-t:#fbe9e9;
+  --mint:#a8e0c4; --sky:#b6cdf2; --peach:#f6d9b4; --lilac:#cabfe8; --rose:#f2bccb;
+  --shadow:0 10px 30px -16px rgba(60,90,70,.30);
+  --shadow-s:0 3px 12px -6px rgba(60,90,70,.18);
+  --r:18px;
+  --bg-grad:linear-gradient(180deg,#f1f7f1 0%,#eef4ed 42%,#f6f3ea 100%);
+  --sun:rgba(240,224,176,.50);
+}
+:root[data-theme="prev"]{
+  --bg1:#f4f7fb; --bg2:#eef2f8; --bg3:#f2f6fb;
+  --ink:#2b313c; --ink2:#525c6b; --muted:#8a93a1; --faint:#bcc3cf;
+  --line:#e3e8ef; --line2:#eef2f7;
+  --sage:#34b27a; --sage-d:#1f8a55; --sage-t:#e3f6ec;
+  --peri:#5b8def; --peri-d:#2f5fd0; --peri-t:#e8eefc;
+  --apr:#f0a93a; --apr-d:#c9821b; --apr-t:#fdf1de;
+  --red:#ef5b5b; --red-d:#c83b3b; --red-t:#fde8e8;
+  --mint:#9fe0c4; --sky:#aecbf6; --peach:#f9dcb8; --lilac:#cdbcef; --rose:#f4b8ca;
+  --shadow:0 6px 20px -12px rgba(40,50,70,.28);
+  --shadow-s:0 2px 8px -4px rgba(40,50,70,.18);
+  --r:14px;
+  --bg-grad:linear-gradient(180deg,#f3f7fc 0%,#eef2f8 100%);
+  --sun:transparent;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Pretendard','Pretendard Variable',-apple-system,sans-serif;
+  color:var(--ink); line-height:1.6; font-size:15px;
+  background:var(--bg-grad);
+  background-attachment:fixed; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(115% 55% at 86% -10%, var(--sun), transparent 62%);transition:background .4s}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px 80px}
+.serif{font-family:'Gowun Batang',serif}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+header.hero{padding:60px 4px 26px}
+.overline{font-size:12.5px;letter-spacing:.32em;color:var(--sage-d);font-weight:600;text-transform:uppercase;margin-bottom:16px}
+header.hero h1{font-family:'Gowun Batang',serif;font-size:clamp(30px,5vw,46px);font-weight:700;line-height:1.22;letter-spacing:-.01em;color:#34323c}
+header.hero h1 .hl{background:linear-gradient(120deg,var(--sage-d),var(--peri-d));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+header.hero p.sub{margin-top:18px;max-width:620px;color:var(--ink2);font-size:15.5px}
+.meta{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap}
+.chip{font-size:12px;color:var(--ink2);background:#fff;border:1px solid var(--line);padding:6px 13px;border-radius:999px}
+.chip b{color:var(--sage-d);font-weight:700}
+
+section{margin-top:28px}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin:0 4px 14px}
+.sec-no{font-family:'Gowun Batang',serif;font-size:14px;color:var(--apr-d);font-weight:700}
+.sec-head h2{font-size:19px;font-weight:700;letter-spacing:-.01em;color:#403d48}
+.sec-head .desc{font-size:13px;color:var(--muted);margin-left:auto;font-weight:500}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:24px 26px}
+
+.group{margin-top:22px}
+.group:first-child{margin-top:0}
+.group-t{font-size:13px;font-weight:700;color:var(--sage-d);letter-spacing:.02em;margin-bottom:13px;display:flex;align-items:center;gap:9px}
+.group-t::before{content:"◆";color:var(--sage);font-size:9px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 24px}
+.grid.g3{grid-template-columns:1.1fr 1fr 1fr;gap:13px 18px;align-items:start}
+.grid-acc.g4{grid-template-columns:repeat(4,1fr)}
+.grid3{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:14px 22px;align-items:start}
+.grid-acc{display:grid;grid-template-columns:repeat(3,1fr);gap:13px 16px}
+.acc-row{display:flex;align-items:flex-end;gap:18px;margin-top:14px;flex-wrap:wrap}
+.dgrp{display:flex;flex-direction:column;gap:7px}
+.dgrp label{font-size:13px;color:var(--ink2);font-weight:600}
+.ym{display:flex;align-items:center;gap:5px}
+.ym input{width:72px;border:1.5px solid var(--line);background:rgba(255,255,255,.7);border-radius:11px;padding:9px 8px;font-size:14px;text-align:center;font-variant-numeric:tabular-nums;font-family:inherit;color:var(--ink);outline:none;transition:.18s}
+.ym input:nth-child(3){width:66px}
+.ym input:focus{border-color:var(--sage);box-shadow:0 0 0 4px var(--sage-t)}
+.ym span{font-size:12.5px;color:var(--muted);font-weight:600}
+.acc-desc{flex:1;min-width:200px;font-size:12.5px;font-weight:600;color:var(--sage-d);background:var(--sage-t);border-radius:12px;padding:11px 15px;display:flex;align-items:center;gap:8px}
+.acc-desc::before{content:"↳";color:var(--sage);font-weight:700}
+.re{color:var(--muted);font-weight:500;font-size:.86em}
+#tbl .rmain{font-weight:800;color:var(--ink);font-size:13.5px}
+#tbl .nsub{font-weight:600;color:var(--muted);font-size:11px;margin-left:5px}
+#tbl td.bal .rmain{color:var(--sage-d)}
+#tbl .hsub{display:block;font-size:10px;font-weight:600;color:var(--muted);margin-top:2px;letter-spacing:-.01em}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:13px;color:var(--ink2);font-weight:600}
+.field .hint{font-size:11.5px;color:var(--faint);font-weight:500;line-height:1.45}
+input[type=month],input[type=number]{font-family:inherit;font-size:14.5px;color:var(--ink);border:1.5px solid var(--line);background:rgba(255,255,255,.7);border-radius:13px;padding:11px 13px;outline:none;transition:.18s;width:100%}
+input[type=number]{font-variant-numeric:tabular-nums}
+input:focus{border-color:var(--sage);box-shadow:0 0 0 4px var(--sage-t)}
+.inwrap{position:relative}
+.inwrap .unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--muted);pointer-events:none}
+.inwrap input{padding-right:40px}
+
+.readout{margin-top:14px;font-size:13px;font-weight:600;color:var(--sage-d);background:var(--sage-t);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:8px}
+.readout::before{content:"↳";color:var(--sage);font-weight:700}
+.readout.peri{color:var(--peri-d);background:var(--peri-t)}
+.readout.peri::before{color:var(--peri)}
+.halfrow{display:flex;gap:14px;align-items:stretch;margin-top:12px;flex-wrap:wrap}
+.halfrow>*{flex:1 1 0;min-width:220px}
+.halfrow .halffield{background:#f7f9fb;border:1px solid var(--line);border-radius:12px;padding:0 15px;display:flex;align-items:center;gap:12px}
+.halfrow .halffield label{margin:0;white-space:nowrap}
+.halfrow .halffield .fixchip{margin-top:0}
+
+.seg{display:flex;background:rgba(255,255,255,.5);border:1.5px solid var(--line);border-radius:13px;padding:4px;gap:4px}
+.seg button{flex:1;border:none;background:transparent;font-family:inherit;font-size:13.5px;font-weight:600;color:var(--ink2);padding:9px 8px;border-radius:10px;cursor:pointer;transition:.18s}
+.seg button.on{background:#fff;color:var(--sage-d);box-shadow:var(--shadow-s)}
+.seg.apr button.on{color:var(--apr-d)}
+
+/* 인출 3단계 */
+.stages{display:flex;flex-direction:column;gap:10px}
+.stage{display:flex;align-items:center;flex-wrap:wrap;gap:7px;font-size:13px;color:var(--ink2);background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:13px;padding:11px 14px}
+.stage .sno{font-weight:700;color:var(--apr-d);background:var(--apr-t);border-radius:8px;padding:3px 9px;font-size:12px}
+.stage .mini{width:58px;padding:7px 6px;text-align:center;font-size:13.5px}
+.stage .ec{font-weight:700;color:var(--apr-d);min-width:18px;text-align:center}
+.stage .dv{font-size:11px;color:var(--red-d);font-weight:700;background:var(--red-t);border-radius:7px;padding:2px 8px;margin:0 2px}
+.stage .amt{font-weight:600;color:var(--ink)}
+.amt-hl{color:#7c3aed;font-weight:800;font-variant-numeric:tabular-nums}
+.stage input.money{color:#7c3aed;font-weight:800}
+
+.sliderbox{display:flex;flex-direction:column;gap:9px}
+.sliderbox .top{display:flex;justify-content:space-between;align-items:baseline}
+.sliderbox .val{font-family:'Pretendard';font-size:22px;font-weight:800;color:var(--sage-d);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.sliderbox .val small{font-size:13px;font-family:'Pretendard';color:var(--muted);font-weight:600}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:var(--line);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--sage);box-shadow:var(--shadow-s);cursor:pointer;transition:.12s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.presets button{font-family:inherit;font-size:11.5px;font-weight:600;color:var(--ink2);background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:999px;padding:5px 11px;cursor:pointer;transition:.16s}
+.presets button:hover{border-color:var(--sage);color:var(--sage-d)}
+.fixchip{font-size:12px;font-weight:600;color:var(--apr-d);background:var(--apr-t);border-radius:10px;padding:9px 13px;display:inline-flex;align-items:center;gap:7px;margin-top:6px}
+.fixchip b{font-family:'Gowun Batang',serif;font-size:15px}
+
+.compare-row{display:flex;align-items:center;justify-content:space-between;margin-top:22px;padding:14px 18px;background:var(--peri-t);border-radius:14px}
+.compare-row .lbl{font-size:13.5px;font-weight:600;color:var(--peri-d)}
+.compare-row .lbl small{display:block;font-size:11.5px;color:var(--ink2);font-weight:500;margin-top:2px}
+.toggle{position:relative;width:48px;height:27px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle .track{position:absolute;inset:0;background:#d8d2de;border-radius:99px;transition:.2s;cursor:pointer}
+.toggle .track::before{content:"";position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.18)}
+.toggle input:checked + .track{background:var(--peri-d)}
+.toggle input:checked + .track::before{transform:translateX(21px)}
+.warn{margin-top:16px;font-size:12.5px;color:var(--apr-d);background:var(--apr-t);border-radius:12px;padding:11px 15px;display:none}
+.warn.show{display:block}
+
+/* KPI 촘촘 */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:11px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 14px;box-shadow:var(--shadow-s)}
+.kpi .klabel{font-size:11px;color:var(--muted);font-weight:600;font-style:italic}
+.kpi .kval{font-family:'Pretendard';font-size:21px;font-weight:700;color:#2f3640;margin-top:7px;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi .kval.sage{color:var(--sage-d)} .kpi .kval.peri{color:var(--peri-d)} .kpi .kval.apr{color:var(--apr-d)}
+.kpi .ksub{font-size:10.5px;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* 자산 흐름 도식 */
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.fnode{flex:1 1 0;min-width:150px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:16px 16px 15px;position:relative;display:flex;flex-direction:column;gap:3px}
+.fnode.start{border-color:#dfe6ef;background:linear-gradient(170deg,#fbfcfe,#f4f7fb)}
+.fnode.mid{border-color:var(--sky);background:linear-gradient(170deg,#fbfcff,var(--peri-t))}
+.fnode.end{border-color:var(--mint);background:linear-gradient(170deg,#fbfffc,var(--sage-t))}
+.fnode .fl{font-size:11.5px;font-weight:700;color:var(--ink2);font-style:italic;letter-spacing:.01em}
+.fnode .fv{font-family:'Pretendard';font-size:25px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:#2b313c}
+.fnode.mid .fv{color:var(--peri-d)} .fnode.end .fv{color:var(--sage-d)}
+.fnode .fs{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+.fnode .fbadge{position:absolute;top:-11px;right:12px;font-size:11px;font-weight:800;color:#fff;background:var(--sage);border-radius:999px;padding:3px 11px;box-shadow:var(--shadow-s)}
+/* 투입 원금 클러스터 (초기+적립 자연 결합) */
+.fcluster{flex:1.18 1 0;min-width:168px;background:linear-gradient(165deg,#fdfcff,#eef1f9);border:1.5px solid #e3e0f1;border-radius:16px;padding:13px 15px;display:flex;flex-direction:column;gap:10px;position:relative}
+.fcluster .fc-head{font-size:11.5px;font-weight:800;color:var(--ink2);font-style:italic;letter-spacing:.01em}
+.fc-row{display:flex;align-items:center;gap:10px}
+.fc-row .fdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+.fc-row.init .fdot{background:#a78bdb}
+.fc-row.acc .fdot{background:#8aa0c8}
+.fc-tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.fc-t{font-size:11px;font-weight:700;color:var(--ink2)}
+.fc-t small{color:var(--muted);font-weight:600}
+.fc-v{font-family:'Pretendard';font-size:17.5px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#46506a;line-height:1.15}
+.fc-row.init .fc-v{color:#7e57c2}
+.fc-v .sub{color:var(--muted);font-weight:600;font-size:.8em}
+.fnode .sub,.fpill .sub{color:var(--muted);font-weight:600;font-size:.84em}
+.farrow{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:0 4px}
+.farrow .fcap{font-size:10px;font-weight:700;color:var(--peri-d);background:var(--peri-t);border-radius:999px;padding:3px 9px;text-align:center;line-height:1.3;white-space:nowrap}
+.farrow .fcap.w{color:var(--apr-d);background:var(--apr-t)}
+.farrow .arl{width:100%;height:0;border-top:2.5px dashed var(--faint);position:relative}
+.farrow .arl::after{content:"";position:absolute;right:-2px;top:-5px;border-left:8px solid var(--faint);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.fstats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:16px}
+.fpill{border-radius:13px;padding:13px 15px;border:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.fpill span{font-size:11.5px;font-weight:700;font-style:italic}
+.fpill b{font-family:'Pretendard';font-size:19px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.fpill i{font-size:11px;color:var(--muted);font-weight:600;font-style:normal}
+.fpill.apr{background:var(--apr-t)} .fpill.apr span,.fpill.apr b{color:var(--apr-d)}
+.fpill.peri{background:var(--peri-t)} .fpill.peri span,.fpill.peri b{color:var(--peri-d)}
+.fpill.sage{background:var(--sage-t)} .fpill.sage span,.fpill.sage b{color:var(--sage-d)}
+@media(max-width:760px){
+  .flow{flex-direction:column}
+  .farrow{flex-basis:auto;width:100%;flex-direction:row;padding:6px 0}
+  .farrow .arl{width:40%;height:0}
+  .farrow .arl::after{right:-2px;top:-5px}
+  .fstats{grid-template-columns:1fr}
+}
+
+.chart-wrap{width:100%;position:relative}
+svg.chart{width:100%;display:block;overflow:visible}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:2px 4px 16px;font-size:12.5px;color:var(--ink2);font-weight:500}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:7px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;background:rgba(58,56,66,.95);color:#fff;font-size:12px;padding:10px 13px;border-radius:11px;opacity:0;transition:opacity .12s;white-space:nowrap;z-index:5;line-height:1.5;box-shadow:var(--shadow)}
+.tip b{font-weight:700}.tip .r{display:flex;justify-content:space-between;gap:16px}.tip .r span:first-child{color:#c9c4d0}
+
+.tbl-scroll{overflow-x:auto;border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:11.5px;font-weight:700;color:var(--muted);text-align:right;padding:11px 14px;border-bottom:1.5px solid var(--line);white-space:nowrap;background:rgba(255,255,255,.4);position:sticky;top:0}
+thead th:first-child,tbody td:first-child{text-align:left}
+thead th:nth-child(3),tbody td:nth-child(3){text-align:center}
+tbody td{padding:11px 14px;text-align:right;border-bottom:1px solid var(--line2);font-variant-numeric:tabular-nums;color:var(--ink2)}
+tbody tr:hover{background:rgba(255,255,255,.55)}
+tbody td.bal{font-weight:700;color:#3a3842}
+.ph{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px}
+.ph.acc{background:var(--sage-t);color:var(--sage-d)}
+.ph.re{background:var(--peri-t);color:var(--peri-d)}
+.ph.wd{background:var(--apr-t);color:var(--apr-d)}
+
+/* 검증 초소형 */
+.vmini{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.5);border:1px solid var(--line);border-radius:13px;padding:10px 16px}
+.vmini .ok{font-size:12px;font-weight:700;color:var(--sage-d)}
+.vmini .ok.bad{color:var(--apr-d)}
+.vmini .v{font-variant-numeric:tabular-nums}
+.vmini .v b{color:var(--ink2);font-weight:600}
+.vmini .sep{color:var(--faint)}
+
+.notes{font-size:12px;color:var(--muted);line-height:1.8}
+.notes b{color:var(--ink2);font-weight:700}
+.notes ul{list-style:none;margin-top:10px}
+.notes li{padding-left:16px;position:relative;margin-bottom:4px}
+.notes li::before{content:"–";position:absolute;left:0;color:var(--faint)}
+.disc{margin-top:20px;font-size:11.5px;color:var(--faint);border-top:1px solid var(--line);padding-top:16px;font-style:italic}
+
+@media(max-width:920px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:860px){.grid{grid-template-columns:1fr}.grid.g3{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.grid-acc{grid-template-columns:1fr 1fr}.grid-acc.g4{grid-template-columns:1fr 1fr}.sec-head .desc{display:none}}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.fade{opacity:0;transform:translateY(14px);animation:fin .7s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes fin{to{opacity:1;transform:none}}
+
+/* 인쇄 버튼 */
+.printbtn{font-family:inherit;font-size:12px;font-weight:600;color:var(--peri-d);background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;transition:.16s}
+.printbtn:hover{border-color:var(--peri);background:#fff}
+
+/* 인출 단계 보강 */
+.stage{align-items:center}
+.stage .seg-yr,.stage .seg-amt{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.stage .cal{font-size:11px;color:var(--peri-d);font-weight:700;background:var(--peri-t);border-radius:7px;padding:2px 8px}
+.stage .nm{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.04em;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.stage .rv{font-size:11.5px;color:var(--muted);font-weight:600}
+.stage .dv{margin-left:auto;background:var(--red-t);color:var(--red-d)}
+.stage .dv.ok{background:var(--sage-t);color:var(--sage-d)}
+.dv-legend{margin-top:12px;font-size:12px;color:var(--ink2);line-height:1.7;background:#f7f9fb;border:1px solid var(--line);border-radius:11px;padding:11px 15px}
+.taxnote{margin-top:10px;font-size:11.5px;color:var(--ink2);line-height:1.65;background:var(--apr-t);border:1px solid #f0dcb4;border-radius:11px;padding:10px 14px}
+.taxnote b{color:var(--apr-d)}
+.dv-legend b{color:var(--ink);font-weight:700}
+.dv-legend .lg{font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px;margin-left:4px}
+.dv-legend .lg.ok{background:var(--sage-t);color:var(--sage-d)}
+.dv-legend .lg.bad{background:var(--red-t);color:var(--red-d)}
+
+/* 자금 고갈/유지 배너 */
+.depbar{padding:13px 18px;border-radius:15px;font-size:13.5px;font-weight:600;align-items:center;gap:10px}
+.depbar b{font-family:'Gowun Batang',serif;font-weight:700}
+.depbar.ok{background:var(--sage-t);color:var(--sage-d)}
+.depbar.bad{background:#fbeae8;color:#d64545;border:1px solid #f1d2cd}
+
+/* 보수모델 힌트 */
+
+@media print{
+  body{background:#fff !important}
+  .printbtn{display:none}
+  .card{box-shadow:none;border:1px solid #e4e8ed;background:#fff !important}
+  .chart-wrap,section,.kpi,.stage{page-break-inside:avoid}
+  section{margin-top:14px}
+  header.hero{padding:18px 4px 10px}
+  .fade{animation:none;opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero fade">
+    <div class="overline">노후 연금 자산 설계 · Pension Simulator</div>
+    <h1 class="serif">매달 들어오는 현금흐름,<br><span class="hl">100세까지 미리 그려봅니다.</span></h1>
+    <p class="sub">TIGER 미국나스닥100타겟데일리커버드콜(486290)의 검증된 모수를 엔진에 담았습니다.
+      적립 → 100% 재투자 → 3단계 인출까지 한 화면에서 설계하고, 매년 잔고와 배당을 확인하세요.</p>
+    <div class="meta">
+      <span class="chip">연 분배 <b>15% 고정</b></span>
+      <span class="chip">상관 ρ <b>0.98</b> · β <b>0.97</b></span>
+      <span class="chip">계산 검증 <b>적립 3중 · 인출 4중</b></span>
+      <span class="chip">자산 <b>15% 배당 ETF (486290)</b></span>
+      <button class="printbtn" id="themeBtn">🎨 디자인: 새 버전</button>
+      <button class="printbtn" id="printBtn">🖨 인쇄 · PDF 저장</button>
+    </div>
+  </header>
+
+  <!-- 1. 입력 -->
+  <section class="fade">
+    <div class="sec-head"><span class="sec-no serif">1.</span><h2>설계 입력</h2><span class="desc">값을 바꾸면 아래가 즉시 다시 계산됩니다</span></div>
+    <div class="card pad">
+
+      <div class="group">
+        <div class="group-t">적립 설계</div>
+        <div class="grid-acc g4">
+          <div class="field"><label>현재 나이</label><div class="inwrap"><input type="number" id="age" value="57" min="20" max="80"><span class="unit">세</span></div></div>
+          <div class="field"><label>초기 투자금</label><div class="inwrap"><input type="number" id="init" value="9000" min="0" step="100"><span class="unit">만원</span></div></div>
+          <div class="field"><label>월 적립액</label><div class="inwrap"><input type="number" id="contrib" value="100" min="0" step="10"><span class="unit">만원</span></div></div>
+          <div class="field"><label>종료 나이 <span style="color:var(--muted);font-weight:500">(이 나이까지)</span></label><div class="inwrap"><input type="number" id="endAge" value="100" min="60" max="110"><span class="unit">세</span></div></div>
+        </div>
+        <div class="acc-row">
+          <div class="dgrp"><label>적립 시작</label><div class="ym"><input type="number" id="accStartY" value="2026" min="2000" max="2090"><span>년</span><input type="number" id="accStartM" value="6" min="1" max="12"><span>월</span></div></div>
+          <div class="dgrp"><label>적립 종료</label><div class="ym"><input type="number" id="accEndY" value="2030" min="2000" max="2090"><span>년</span><input type="number" id="accEndM" value="12" min="1" max="12"><span>월</span></div></div>
+          <div class="acc-desc" id="accInfo"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-t">계좌 · 세제 · 잉여 운용</div>
+        <div class="grid g3">
+          <div class="field"><label>계좌 유형</label>
+            <div class="seg" id="seg-acct">
+              <button data-v="pension" class="on">연금 · 분리과세 3.3~16.5%</button>
+              <button data-v="normal">일반 · 배당세 15.4%</button>
+            </div>
+          </div>
+          <div class="field">
+            <div class="sliderbox">
+              <div class="top"><label>물가 상승률 <span style="color:var(--muted);font-weight:500">(실질 환산)</span></label><div class="val num" id="inflVal" style="color:var(--apr-d);font-size:17px">2.5<small>%</small></div></div>
+              <input type="range" id="infl" min="1" max="5" step="0.5" value="2.5">
+              <div class="presets" id="inflPre"><button data-v="2.0">2.0%</button><button data-v="2.5">2.5%</button><button data-v="3.0">3.0%</button></div>
+            </div>
+          </div>
+          <div class="field"><label>잉여 분배금 처리 <span style="color:var(--muted);font-weight:500">(배당&gt;인출 시 잔여)</span></label>
+            <div class="seg apr" id="seg-surplus"><button data-v="reinvest" class="on">재적립 투자</button><button data-v="cash">현금 보관</button></div>
+          </div>
+        </div>
+        <div class="grid g3" style="margin-top:14px">
+          <div class="field">
+            <div class="sliderbox">
+              <div class="top"><label>연 분배율 <span style="color:var(--muted);font-weight:500">(월 = ÷12)</span></label><div class="val num" id="dyVal" style="color:var(--apr-d);font-size:17px">15.0<small>%</small></div></div>
+              <input type="range" id="dyield" min="1" max="20" step="0.5" value="15">
+              <div class="presets" id="dyPre"><button data-v="10">10%</button><button data-v="12">12%</button><button data-v="15">15%</button></div>
+            </div>
+          </div>
+          <div class="field" style="grid-column:span 2;justify-content:center">
+            <span class="hint" style="margin-top:0">📌 TIGER 미국나스닥100타겟데일리커버드콜 목표 <b>15%</b>(월 1.25%)가 기본값입니다. 다른 배당·커버드콜 ETF를 연구할 때 분배율을 바꾸면 적립·재투자·인출 전 구간에 즉시 반영됩니다.</span>
+          </div>
+        </div>
+        <div class="taxnote">💡 <b>연금 인출세(분리과세)</b> — 연 사적연금 <b>실질 1,500만원 이하</b>: 70세 미만 5.5% · 70~80세 4.4% · 80세+ 3.3% / <b>1,500만원 초과</b>: 16.5% 단일세율. 1,500만원 한도는 오늘 가치(실질) 기준으로 적용했고, 무과세 원금·퇴직소득 구분은 단순화(전액 과세)했습니다. 시뮬레이션의 "세후" 인출액에 바로 반영됩니다.</div>
+      </div>
+
+      <div class="group">
+        <div class="group-t">연금 인출 — 3단계</div>
+        <div class="readout" id="reInfo"></div>
+        <div class="stages" style="margin-top:13px">
+          <div class="stage"><span class="sno">1단계</span>
+            <span class="seg-yr">인출 0년차<span class="cal" id="cal1"></span> ~ <input type="number" id="s1End" class="mini" value="5" min="1" max="40">년차</span>
+            <span class="seg-amt">월 연금 인출 <span class="nm">실질 세후</span> <input type="number" id="amt1" class="mini money" value="300" min="0" step="10">만원 <span class="rv" id="rv1"></span></span>
+            <span class="dv" id="d1"></span></div>
+          <div class="stage"><span class="sno">2단계</span>
+            <span class="seg-yr"><span class="ec" id="e1">6</span>년차<span class="cal" id="cal2"></span> ~ <input type="number" id="s2End" class="mini" value="10" min="2" max="40">년차</span>
+            <span class="seg-amt">월 연금 인출 <span class="nm">실질 세후</span> <input type="number" id="amt2" class="mini money" value="300" min="0" step="10">만원 <span class="rv" id="rv2"></span></span>
+            <span class="dv" id="d2"></span></div>
+          <div class="stage"><span class="sno">3단계</span>
+            <span class="seg-yr"><span class="ec" id="e2">11</span>년차<span class="cal" id="cal3"></span> ~ <span class="amt">종료</span></span>
+            <span class="seg-amt">월 연금 인출 <span class="nm">실질 세후</span> <input type="number" id="amt3" class="mini money" value="300" min="0" step="10">만원 <span class="rv" id="rv3"></span></span>
+            <span class="dv" id="d3"></span></div>
+        </div>
+        <div class="readout peri" id="wdEnd" style="margin-top:12px"></div>
+        <div class="dv-legend">
+          <b>단계 배지 색 안내</b> — 입력은 <b>실질 세후(오늘 가치로 손에 쥐는) 월 금액</b>이며, 계좌에서 빠지는 명목 세전액은 물가·세금만큼 자동 그로스업됩니다. 각 단계 시작 시점의 예상 월배당(실질 세후)과 인출액을 비교합니다.
+          <span class="lg ok">녹색</span> 배당만으로 인출 충당 가능 → 원금 보존(여유분 표시) ·
+          <span class="lg bad">적색</span> 배당 초과 → 부족분만큼 보유분(원금)을 매도해 충당
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-t">시뮬레이션 가정</div>
+        <div class="grid">
+          <div class="field">
+            <div class="sliderbox">
+              <div class="top"><label>적립·재투자기 기대 연 총수익률 <span style="color:var(--muted);font-weight:500">(NAV 잠식 반영)</span></label><div class="val num" id="trVal">18.6<small>%</small></div></div>
+              <input type="range" id="tr" min="10" max="26" step="0.1" value="18.6">
+              <div class="presets" id="trPre"><button data-v="16.6">보수 16.6%</button><button data-v="18.6">기준 18.6%</button><button data-v="20.6">공격 20.6%</button></div>
+              <span class="hint">15년 실측 연평균 TR 20.1%에서 커버드콜 NAV 잠식 <b>−1.5%p</b>를 반영한 <b>18.6%</b>가 기준입니다(커버드콜 구조상 가격수익이 분배율에 못 미칠 때 원금이 잠식되는 위험의 단순화 반영). 보수 −2%p / 공격 +2%p. 적립·재투자기에 이 수익률로 복리 성장합니다.</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>인출기 기대 연 총수익률 <span style="color:var(--muted);font-weight:500">(자동 · 적립·재투자기 − 2.0%p)</span></label>
+            <span class="fixchip" style="color:var(--peri-d);background:var(--peri-t)">↓ <b id="trWdVal">16.6%</b> 적용</span>
+            <span class="hint">은퇴 후 장기 구간은 적립기보다 2.0%p 낮은 수익률을 자동 적용합니다(기준→16.6% / 보수→14.6% / 공격→18.6%).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn" id="warn"></div>
+    </div>
+  </section>
+
+  <!-- 2. 요약 -->
+  <section class="fade">
+    <div class="sec-head"><span class="sec-no serif">2.</span><h2>한눈에 보는 결과</h2><span class="desc" id="sum-desc"></span></div>
+    <div class="depbar" id="depBanner" style="display:none"></div>
+    <div class="card pad"><div class="flow" id="flow"></div><div class="fstats" id="fstats"></div></div>
+  </section>
+
+  <!-- 3. 잔고 -->
+  <section class="fade">
+    <div class="sec-head"><span class="sec-no serif">3.</span><h2>자산이 자라는 모습</h2><span class="desc">세로축 로그·보조축 · 실질=막대(5년) / 명목=실선</span></div>
+    <div class="card pad">
+      <div class="legend" id="legBal"></div>
+      <div class="chart-wrap"><svg class="chart" id="balChart" viewBox="0 0 1000 460" preserveAspectRatio="none"></svg><div class="tip" id="tipBal"></div></div>
+    </div>
+  </section>
+
+  <!-- 4. 배당 -->
+  <section class="fade">
+    <div class="sec-head"><span class="sec-no serif">4.</span><h2>매년 손에 쥐는 배당</h2><span class="desc">맨 앞 <b style="color:#7c3aed">연금 인출(실질 세후)</b> 강조 · 배당 실질 세후·세전·명목 세전 · 로그 · 5년</span></div>
+    <div class="card pad">
+      <div class="legend" id="legDiv"></div>
+      <div class="chart-wrap"><svg class="chart" id="divChart" viewBox="0 0 1000 360" preserveAspectRatio="none"></svg><div class="tip" id="tipDiv"></div></div>
+    </div>
+  </section>
+
+  <!-- 5. 표 -->
+  <section class="fade">
+    <div class="sec-head"><span class="sec-no serif">5.</span><h2>연도별 상세</h2><span class="desc">한 줄 표기 · <b style="color:var(--ink)">굵게=실질 세후</b> / <span style="color:var(--muted)">작게=명목 세전</span> (잔고는 실질/명목)</span></div>
+    <div class="card pad"><div class="tbl-scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div></div>
+  </section>
+
+  <!-- 6. 검증 (초소형) -->
+  <section class="fade">
+    <div class="vmini" id="vminiFull"></div>
+    <div class="vmini" id="vminiAcc" style="margin-top:10px"></div>
+    <div class="vmini" id="vminiWd" style="margin-top:10px"></div>
+  </section>
+
+  <section class="fade">
+    <div class="card pad">
+      <div class="notes">
+        <b>모수 출처 · 가정</b>
+        <ul>
+          <li>모든 금액은 명목과 실질을 함께 표시합니다. 실질은 입력한 물가 상승률로 할인한 '적립 시작 연도 구매력' 기준이며, 그래프 세로축은 큰 자릿수 차이를 고려해 로그 스케일(값은 명목)입니다.</li>
+          <li>연 분배율은 기본 <b>15%</b>(월 1.25%, TIGER 미국나스닥100타겟데일리커버드콜 목표)이며 슬라이더로 가변 — 다른 배당·커버드콜 ETF 연구 시 조정 가능합니다. 상관 ρ 0.980, 업캡처 0.90 / 다운캡처 1.025 — 정리서·데이터북(상장후 469거래일 회귀)</li>
+          <li>적립·재투자기 기대 TR은 15년 실측 20.1%에서 커버드콜 NAV 잠식 −1.5%p를 반영한 <b>18.6%</b>를 기준으로 하며, 보수 −2%p(16.6%)·공격 +2%p(20.6%)로 조정합니다.</li>
+          <li>인출 단계 금액은 <b>실질 세후(오늘 가치로 손에 쥐는) 기준</b>으로 입력하며, 계좌에서 빠지는 명목 세전액은 물가·세금만큼 자동 그로스업(= 세후 ÷ (1−세율))됩니다. 대시보드 과세 흐름은 실질 세후가 주(主), 명목 세전이 보조이며, 잔고·원금은 실질/명목으로 표기합니다.</li>
+          <li>적립·재투자기 잔고는 '적립·재투자기 수익률'로 복리 성장(분배 100% 재투자). 인출기는 장기 외삽 보수화를 위해 적립기보다 2.0%p 낮은 수익률을 자동 적용합니다.</li>
+          <li>월배당 100% 재투자 종료는 적립 종료 다음 달로 자동 설정되며, 그 달부터 인출(0년차)이 시작됩니다. 단계 경계는 비중첩으로, 1단계가 10년차에 끝나면 2단계는 11년차부터 시작합니다. 각 단계 시작 시점의 예상 월 배당(세전)을 입력 옆에 표시합니다.</li>
+          <li>세금 — 연금계좌: 적립·재투자기 과세이연, 인출 시 5.5%. 일반계좌: 분배 수령 시마다 15.4%(재투자 드래그 반영).</li>
+          <li>인출은 3단계 구간별 금액을 적용하며, 인출 후 남는 배당은 위 '잉여 분배금 처리' 지침을 따릅니다.</li>
+          <li>인출액이 배당을 초과하면 보유분을 매도해 충당합니다(강제 매도분 추가 매매차익세는 단순화 위해 미반영).</li>
+        </ul>
+        <div class="disc">본 도구는 명시된 가정에 따른 정보 정리·시뮬레이션용 참고자료이며 투자자문이 아닙니다. 분배율·수익률은 목표·추정치로 미래 수익을 보장하지 않으며, 원금 손실과 분배 변동이 발생할 수 있습니다. 투자 결정 전 투자설명서·집합투자규약을 확인하고 필요 시 세무·재무 전문가와 상담하시기 바랍니다.</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+const S={acct:'pension',surplus:'reinvest'};
+const TAX={pension:0.055,normal:0.154};
+// 연금계좌 인출세(분리과세): 연 사적연금 수령액(실질) 1,500만원 이하 → 나이별 저율(55~70세 5.5%·70~80세 4.4%·80세+ 3.3%), 초과 → 16.5% 분리과세. 무과세 원금/퇴직소득 구분은 단순화(전액 과세). 일반계좌는 배당세 15.4% 유지.
+// 배당의 세후 환산 세율 (해당 연도 명목 연배당 기준). 연금: 실질 연환산 1,500만 이하 나이별 / 초과 16.5%. 일반 15.4%
+function divTaxRate(p,year,annualDistNom){
+  if(p.acct!=='pension')return 0.154;
+  const age=p.age+(year-p.startYear);
+  const aR=annualDistNom/Math.pow(1+p.infl,year-p.startYear);
+  return aR<=1500*1e4?(age<70?0.055:(age<80?0.044:0.033)):0.165;
+}
+function wdNetReal(p,i){
+  if(i<=p.iRe)return 0;
+  const mi=i-(p.iRe+1);
+  if(mi<(p.s1End+1)*12)return p.amt1*1e4;
+  if(mi<(p.s2End+1)*12)return p.amt2*1e4;
+  return p.amt3*1e4;
+}
+// 세후(손에 쥐는) → 세전 그로스업 세율. 연금: 세전 연환산이 실질 1,500만원 이하면 나이별 저율, 초과면 16.5%. 일반: 15.4%
+function wdTaxRate(p,i){
+  if(p.acct!=='pension')return 0.154;
+  const age=p.age+Math.floor((i-p.iStart)/12);
+  const ageRate=age<70?0.055:(age<80?0.044:0.033);
+  const grossLowReal=wdNetReal(p,i)*12/(1-ageRate);
+  return grossLowReal<=1500*1e4?ageRate:0.165;
+}
+const $=id=>document.getElementById(id);
+function ymIdx(v){const[y,m]=v.split('-').map(Number);return y*12+(m-1);}
+function idxYear(i){return Math.floor(i/12);}
+
+function won2str(w){
+  if(w==null||isNaN(w))return'-';
+  const neg=w<0?'-':'';w=Math.abs(w);
+  const jo=w/1e12;
+  if(jo>=10)return neg+Math.round(jo).toLocaleString('ko-KR')+'조원';
+  if(jo>=1)return neg+(Math.round(jo*10)/10).toFixed(1)+'조원';
+  const eok=w/1e8;
+  if(eok>=10)return neg+Math.round(eok).toLocaleString('ko-KR')+'억원';
+  if(eok>=1)return neg+(Math.round(eok*10)/10).toFixed(1)+'억원';
+  const man=w/1e4;if(man>=1)return neg+Math.round(man).toLocaleString('ko-KR')+'만원';
+  return neg+Math.round(w).toLocaleString('ko-KR')+'원';
+}
+function manStr(w){return Math.round(w/1e4).toLocaleString('ko-KR')+'만원';}
+// 연말 잔고 전용: 10억 이하 0.0억원 / 10억 이상 정수 억원
+function balEok(w){if(w==null||isNaN(w))return'-';const neg=w<0?'-':'';const e=Math.abs(w)/1e8;if(e<0.05)return'0억원';if(e<10)return neg+(Math.round(e*10)/10).toLocaleString('ko-KR')+'억원';return neg+Math.round(e).toLocaleString('ko-KR')+'억원';}
+// 막대 위 짧은 라벨 (실질 잔고 등)
+function labelShort(w){if(w==null||isNaN(w))return'';w=Math.abs(w);
+  if(w>=1e12)return (w/1e12).toFixed(1)+'조';
+  if(w>=1e8){const e=w/1e8;return (e>=10?Math.round(e):Math.round(e*10)/10)+'억';}
+  if(w>=1e4)return Math.round(w/1e4).toLocaleString('ko-KR')+'만';
+  return Math.round(w)+'';}
+// 축 그리드 라벨 (억 단위, 소수 1자리)
+function gridLabel(v){if(v>=1e12)return (v/1e12).toFixed(1)+'조';const e=v/1e8;return (e>=10?Math.round(e):Math.round(e*10)/10)+'억';}
+
+function wdAmount(p,i){ // 계좌에서 인출되는 명목 세전 총액 (= 세후 명목 / (1-세율))
+  if(i<=p.iRe)return 0;
+  const netNom=wdNetReal(p,i)*Math.pow(1+p.infl,idxYear(i)-p.startYear);
+  return netNom/(1-wdTaxRate(p,i));
+}
+
+function simulate(p){
+  const trMa=Math.pow(1+p.trAcc,1/12)-1,trMw=Math.pow(1+p.trWd,1/12)-1,dM=p.dy/12,pMw=trMw-dM,c=p.contrib*1e4;
+  let inv=p.init*1e4,cash=0;const rows=[];
+  for(let i=p.iStart;i<=p.iEnd;i++){
+    let phase,contribM=0,withGross=0,withNet=0,distGross=dM*inv;
+    if(i<=p.iAcc){phase='acc';inv=inv*(1+trMa)+c;contribM=c;if(p.acct==='normal')inv-=distGross*0.154;}
+    else if(i<=p.iRe){phase='re';inv=inv*(1+trMa);if(p.acct==='normal')inv-=distGross*0.154;}
+    else{phase='wd';inv=inv*(1+pMw);const w=wdAmount(p,i);let dn=(p.acct==='normal')?distGross*0.846:distGross;
+      withGross=w;withNet=w*(1-wdTaxRate(p,i));let s=dn-w;
+      if(s>=0){if(p.surplus==='reinvest')inv+=s;else cash+=s;}
+      else{let d=-s;if(cash>=d)cash-=d;else{d-=cash;cash=0;inv-=d;}}if(inv<0)inv=0;}
+    rows.push({i,phase,contribM,withGross,withNet,distGross,bal:inv+cash});
+  }
+  return{rows,params:p};
+}
+function simulate133(p){
+  const trMa=Math.pow(1+p.tr133Acc,1/12)-1,trMw=Math.pow(1+p.tr133Wd,1/12)-1,c=p.contrib*1e4;let bal=p.init*1e4;const out=[];
+  for(let i=p.iStart;i<=p.iEnd;i++){
+    if(i<=p.iAcc)bal=bal*(1+trMa)+c;else if(i<=p.iRe)bal=bal*(1+trMa);else{bal=bal*(1+trMw)-wdAmount(p,i);if(bal<0)bal=0;}
+    out.push(bal);
+  }return out;
+}
+function yearly(sim,b133){
+  const map=new Map();
+  sim.rows.forEach((r,k)=>{
+    const y=idxYear(r.i);
+    if(!map.has(y))map.set(y,{year:y,contrib:0,withG:0,withN:0,dist:0,bal:0,phase:r.phase,lastDist:0,b133:0});
+    const o=map.get(y);o.contrib+=r.contribM;o.withG+=r.withGross;o.withN+=r.withNet;o.dist+=r.distGross;
+    o.bal=r.bal;o.phase=r.phase;o.lastDist=r.distGross;if(b133)o.b133=b133[k];
+  });return[...map.values()];
+}
+function verify(p){
+  const trM=Math.pow(1+p.trAcc,1/12)-1,dM=p.dy/12,c=p.contrib*1e4;
+  const gAcc=(p.acct==='normal')?(trM-dM*0.154):trM;
+  const nAcc=p.iAcc-p.iStart+1,nRe=p.iRe-p.iAcc;
+  const sim=simulate(p);const m1=sim.rows.find(r=>r.i===p.iRe).bal;
+  const init0=p.init*1e4;
+  const initFV=init0*Math.pow(1+gAcc,nAcc+nRe);
+  let fv=gAcc>0?c*((Math.pow(1+gAcc,nAcc)-1)/gAcc):c*nAcc;let m2=fv*Math.pow(1+gAcc,nRe)+initFV;
+  let m3=initFV;for(let k=0;k<nAcc;k++)m3+=c*Math.pow(1+gAcc,(nAcc-1-k)+nRe);
+  const contribFV=m2-initFV;
+  // 초기금 격리 검산: 전체 - (초기금 0일 때) = 초기금 단독 복리(initFV) 와 일치해야 함
+  const contribOnly=simulate({...p,init:0}).rows.find(r=>r.i===p.iRe).bal;
+  const initIso=m1-contribOnly;
+  const initIsoDev=init0>0?Math.abs(initIso-initFV)/Math.max(initFV,1)*100:0;
+  return{m1,m2,m3,init0,initFV,contribFV,contribOnly,initIso,initIsoDev};
+}
+
+// 인출기 검증 — 엔진(월별)·폐쇄형(연 블록 연금식)·역산(백워드)·독립 재구현을 교차 대조
+// 인출액은 실질 입력 → 명목이 매년 물가만큼 증가(연 단위 계단). 선형(재적립·미고갈)에서 4중 일치.
+function verifyWd(p,sim){
+  const trMw=Math.pow(1+p.trWd,1/12)-1,dM=p.dy/12,pMw=trMw-dM;
+  const W_re=sim.rows.find(r=>r.i===p.iRe).bal;
+  const nWd=p.iEnd-p.iRe;
+  const netRealArr=[p.amt1*1e4,p.amt2*1e4,p.amt3*1e4]; // 단계별 실질 세후
+  // mi에 대한 명목 세전 인출액 (= 세후 명목 / (1-세율)) — 엔진과 독립 재현
+  const wAt=mi=>{const gi=p.iRe+1+mi;let netR;
+    if(mi<(p.s1End+1)*12)netR=netRealArr[0];else if(mi<(p.s2End+1)*12)netR=netRealArr[1];else netR=netRealArr[2];
+    let rate;
+    if(p.acct!=='pension')rate=0.154;
+    else{const age=p.age+Math.floor((gi-p.iStart)/12),ageRate=age<70?0.055:(age<80?0.044:0.033);rate=(netR*12/(1-ageRate))<=1500*1e4?ageRate:0.165;}
+    return netR*Math.pow(1+p.infl,idxYear(gi)-p.startYear)/(1-rate);};
+  // M1 엔진
+  const wd=sim.rows.filter(r=>r.phase==='wd');
+  const m1=wd.length?wd[wd.length-1].bal:W_re;
+  let engDep=-1;for(let k=0;k<wd.length;k++){if(wd[k].bal<1e4){engDep=k;break;}}
+  // M4 독립 재구현
+  let inv=W_re,cash=0,indDep=-1;
+  for(let mi=0;mi<nWd;mi++){const w=wAt(mi),dg=dM*inv;inv=inv*(1+pMw);
+    const dn=(p.acct==='normal')?dg*0.846:dg;let s=dn-w;
+    if(s>=0){if(p.surplus==='reinvest')inv+=s;else cash+=s;}
+    else{let d=-s;if(cash>=d)cash-=d;else{d-=cash;cash=0;inv-=d;}}
+    if(inv<0)inv=0;if(indDep<0&&(inv+cash)<1e4)indDep=mi;}
+  const m4=inv+cash;
+  const linear=(p.surplus==='reinvest'&&engDep<0);
+  const r=(p.acct==='normal')?(trMw-0.154*dM):trMw;
+  // M2 폐쇄형: 인출액이 동일한 연속 구간(블록)마다 연금 폐쇄식 체이닝
+  let m2=W_re,bs=0;
+  while(bs<nWd){let be=bs+1;const w0=wAt(bs);while(be<nWd&&Math.abs(wAt(be)-w0)<1e-6)be++;
+    const nb=be-bs,g=Math.pow(1+r,nb);m2=m2*g-(r>0?w0*((g-1)/r):w0*nb);bs=be;}
+  // M3 역산: 최종에서 월별 역점화식으로 W_re 복원
+  let wre=m1;for(let mi=nWd-1;mi>=0;mi--){wre=(wre+wAt(mi))/(1+r);}
+  const reDev=Math.abs(wre-W_re)/Math.max(W_re,1)*100;
+  return{W_re,m1,m2,m3:wre,m4,linear,engDep,indDep,nWd,reDev};
+}
+
+let CUR=null;
+function recalc(){
+  // 단계 제약: 2단계 끝(s2End)은 1단계 끝(s1End)보다 최소 1 크게 (2단계는 s1End+1년차 시작)
+  let s1=Math.max(1,+$('s1End').value), s2=+$('s2End').value;
+  $('s2End').min=s1+1; if(s2<s1+1){s2=s1+1;$('s2End').value=s2;}
+  const trAcc=(+$('tr').value)/100;   // 슬라이더 값 = NAV 잠식(−1.5%p) 반영된 486290 적립 TR
+  const p={age:+$('age').value,contrib:+$('contrib').value,acct:S.acct,surplus:S.surplus,
+    trAcc:trAcc,dy:(+$('dyield').value)/100,init:+$('init').value,infl:(+$('infl').value)/100,
+    s1End:s1,s2End:s2,amt1:+$('amt1').value,amt2:+$('amt2').value,amt3:+$('amt3').value};
+  p.horizon=Math.max(1,(+$('endAge').value)-p.age);
+  p.trWd=Math.max(0,trAcc-0.02);                 // 인출기 = 적립기 − 2.0%p
+  $('trWdVal').textContent=(p.trWd*100).toFixed(1)+'%';
+  // 133690은 커버드콜이 아니라 NAV 잠식 없음 → 원래 raw TR(=trAcc+1.5%p)에 +0.8%p
+  p.tr133Acc=trAcc+0.023;p.tr133Wd=Math.max(0,trAcc-0.02)+0.023;
+  let a=(+$('accStartY').value)*12+((+$('accStartM').value)-1);
+  let b=(+$('accEndY').value)*12+((+$('accEndM').value)-1);
+  let e=a+p.horizon*12-1;
+  let warn=[];
+  if(b<a){b=a;warn.push('적립 종료가 시작보다 빠릅니다 → 보정했습니다.');}
+  let re=b; // 재투자 100% 종료 = 적립 종료 (인출은 그 다음 달부터 = 0년차)
+  if(e<=re){e=re+12;warn.push('종료 나이가 인출 시작보다 빠릅니다 → 보정했습니다.');}
+  Object.assign(p,{iStart:a,iAcc:b,iRe:re,iEnd:e,startYear:idxYear(a)});
+  const wEl=$('warn');if(warn.length){wEl.textContent='⚠ '+warn.join(' ');wEl.classList.add('show');}else wEl.classList.remove('show');
+
+  // 적립 readout
+  const totalM=b-a+1,yy=Math.floor(totalM/12),mm=totalM%12,ageEnd=p.age+Math.floor((b-a)/12);
+  $('accInfo').textContent=`종료 시 만 ${ageEnd}세 · 적립 ${yy}년${mm?' '+mm+'개월':''} (${totalM}회 납입)`+(p.init>0?` · 초기 투자금 ${won2str(p.init*1e4)} 선반영`:'');
+  $('e1').textContent=p.s1End+1;$('e2').textContent=p.s2End+1;
+
+  const sim=simulate(p);const b133=null;const Y=yearly(sim,b133);
+  CUR={p,sim,Y,b133};
+
+  // 인출 단계: 계산연도 / 실질 입력·명목 자동 / 배당 충당 판정(실질 기준)
+  const wdStartYear=idxYear(re+1),wdAge=p.age+Math.floor((re+1-a)/12),wdYears=Math.round((e-re)/12),lastCalYear=idxYear(e);
+  const distAt=idx=>{const r=sim.rows.find(x=>x.i===idx);return r?r.distGross:null;};
+  const netF=(p.acct==='normal'?0.846:1);
+  const i1=re+1,i2=re+1+(p.s1End+1)*12,i3=re+1+(p.s2End+1)*12;
+  $('cal1').textContent=`(${wdStartYear}년~${wdStartYear+p.s1End}년)`;
+  $('cal2').textContent=`(${wdStartYear+p.s1End+1}년~${wdStartYear+p.s2End}년)`;
+  $('cal3').textContent=`(${wdStartYear+p.s2End+1}년~${lastCalYear}년)`;
+  const stageStartCal=[wdStartYear,wdStartYear+p.s1End+1,wdStartYear+p.s2End+1];
+  const iStage=[i1,i2,i3];
+  // rv: 실질 세후(손에 쥐는) 입력 → 시작 시점 명목 세전(그로스업) 자동
+  const A=s=>`<span class="amt-hl">${s}</span>`;
+  [0,1,2].forEach(k=>{$('rv'+(k+1)).innerHTML=`→ 명목 세전 ${A(manStr(wdAmount(p,iStage[k])))}`;});
+  // 배지: 실질 세후 배당 vs 실질 세후 인출(입력). am=실질 세후(만원)
+  const dvBadge=(idx,am,yr)=>{const v=distAt(idx);if(v==null)return{t:'—',ok:true};
+    const rate=wdTaxRate(p,idx);
+    const dnetReal=real(v*(1-rate),yr,p), wReal=am*1e4, ok=wReal<=dnetReal+1;
+    const tail=ok?`→ 배당으로 인출 충당 (여유 실질 세후 +${A(manStr(Math.max(0,dnetReal-wReal)))})`:`→ 배당 초과·원금 매도 ≈실질 세후 ${A(manStr(wReal-dnetReal))}/월`;
+    return{t:`월배당 실질 세후 ≈${A(manStr(dnetReal))} (명목 세전 ${A(manStr(v))}) ${tail}`,ok};};
+  [[i1,p.amt1,'d1'],[i2,p.amt2,'d2'],[i3,p.amt3,'d3']].forEach(([idx,am,id],k)=>{const r=dvBadge(idx,am,stageStartCal[k]);$(id).innerHTML=r.t;$(id).classList.toggle('ok',r.ok);});
+  const v1=distAt(i1),rate1=wdTaxRate(p,i1);
+  $('reInfo').innerHTML=`재투자 100% 종료 = 적립 종료 다음 달 자동 → 인출 시작 <b>${wdStartYear}년</b> · 만 ${wdAge}세 · 시작 월배당 ${v1!=null?'실질 세후 '+A('<b>'+manStr(real(v1*(1-rate1),idxYear(i1),p))+'</b>')+' <span style="color:var(--muted);font-weight:600">(명목 세전 '+A(manStr(v1))+')</span>':'—'}`;
+
+  // 가) 자금 고갈 탐지 (인출기 첫 잔고<1만원)
+  let depIdx=-1;for(const r of sim.rows){if(r.phase==='wd'&&r.bal<1e4){depIdx=r.i;break;}}
+  const dep=$('depBanner');dep.style.display='flex';dep.style.marginBottom='14px';
+  const lastY=Y[Y.length-1];
+  if(depIdx>=0){const dYr=idxYear(depIdx),dAge=p.age+Math.floor((depIdx-a)/12);p.depYear=dYr;
+    dep.className='depbar bad';
+    dep.innerHTML=`⚠ 자금 고갈 — <b>${dYr}년 · 만 ${dAge}세</b>에 잔고가 소진됩니다. 이후 인출 불가하니 인출액·수익률·물가 가정을 조정하세요.`;
+  }else{p.depYear=null;
+    dep.className='depbar ok';
+    dep.innerHTML=`✓ <b>${p.age+p.horizon}세</b>까지 잔고가 유지됩니다 — 최종 잔고 실질 <b>${won2str(real(lastY.bal,lastY.year,p))}</b> <span style="font-weight:600">(명목 ${won2str(lastY.bal)})</span>.`;}
+
+  // 3단계 아래: 인출 완료 후(종료 나이) 잔고 — 실질 중심
+  $('wdEnd').innerHTML=`<b>${p.age+p.horizon}세</b> 인출 완료 후 잔고 (실질) — <span class="amt-hl" style="font-size:15px">${won2str(real(lastY.bal,lastY.year,p))}</span> <span style="color:var(--muted);font-weight:600">(명목 ${won2str(lastY.bal)})</span>`;
+
+  renderFlow(p,sim,Y);renderBal(p,Y);renderDiv(p,Y);renderTbl(p,Y);renderVerify(p);
+  $('sum-desc').textContent=(p.acct==='pension'?'연금계좌':'일반계좌')+' · '+p.contrib+'만원/월 · 물가 '+(p.infl*100).toFixed(1)+'% · '+p.horizon+'년';
+}
+// 실질 환산(적립 시작 연도 구매력 기준)
+function real(nominal,year,p){return nominal/Math.pow(1+p.infl,year-p.startYear);}
+function nr(nominal,year,p){return `명목 ${won2str(nominal)} / 실질 ${won2str(real(nominal,year,p))}`;}
+
+function renderFlow(p,sim,Y){
+  const last=Y[Y.length-1];
+  const defl=y=>Math.pow(1+p.infl,y-p.startYear);
+  const cumDistGross=Y.reduce((s,o)=>s+o.dist,0);                                   // 명목 세전 배당
+  const cumDistNetReal=Y.reduce((s,o)=>s+(o.dist*(1-divTaxRate(p,o.year,o.dist)))/defl(o.year),0); // 실질 세후 배당
+  const cumWithG=Y.reduce((s,o)=>s+o.withG,0);                                       // 명목 세전 인출(그로스)
+  const cumWithNr=Y.reduce((s,o)=>s+o.withN/defl(o.year),0);                         // 실질 세후 인출(손에 쥐는)
+  const init0=p.init*1e4;
+  const contribNom=Y.reduce((s,o)=>s+o.contrib,0);
+  const contribReal=Y.reduce((s,o)=>s+o.contrib/defl(o.year),0);
+  const cumContribReal=init0+contribReal,cumContribNom=init0+contribNom;
+  const balRe=sim.rows.find(r=>r.i===p.iRe).bal,ageRe=p.age+Math.floor((p.iRe-p.iStart)/12);
+  const reYear=idxYear(p.iRe),endYear=last.year;
+  const realFinal=real(last.bal,endYear,p);
+  const mult=cumContribReal>0?realFinal/cumContribReal:0;
+  const accYears=Math.round((p.iRe-p.iStart+1)/12),wdYears=Math.round((p.iEnd-p.iRe)/12);
+  const sub=nom=>`<span class="sub">(명목 ${won2str(nom)})</span>`;
+  // 투입 원금 클러스터 (초기 + 적립을 한 묶음으로 자연 결합)
+  let rows=`<div class="fc-row acc"><span class="fdot"></span><div class="fc-tx"><span class="fc-t">적립 <small>월 ${p.contrib.toLocaleString('ko-KR')}만 × ${accYears}년</small></span><span class="fc-v">${won2str(contribReal)} ${sub(contribNom)}</span></div></div>`;
+  if(init0>0)rows=`<div class="fc-row init"><span class="fdot"></span><div class="fc-tx"><span class="fc-t">초기 투자금</span><span class="fc-v">${won2str(init0)}</span></div></div>`+rows;
+  $('flow').innerHTML=
+    `<div class="fcluster"><div class="fc-head">씨앗 — 투입 원금 <span style="font-weight:600;color:var(--muted)">(실질)</span></div>${rows}</div>`
+   +`<div class="farrow"><span class="fcap">적립·재투자<br>${accYears}년 복리</span><div class="arl"></div></div>`
+   +`<div class="fnode mid"><div class="fl">인출 시작 잔고 <span style="font-weight:600;opacity:.7">(실질)</span></div><div class="fv num">${won2str(real(balRe,reYear,p))}</div><div class="fs">${sub(balRe)} · 만 ${ageRe}세</div></div>`
+   +`<div class="farrow"><span class="fcap w">인출<br>${wdYears}년</span><div class="arl"></div></div>`
+   +`<div class="fnode end"><div class="fbadge">실질 ${mult.toFixed(1)}배</div><div class="fl">최종 잔고 <span style="font-weight:600;opacity:.7">(실질)</span></div><div class="fv num">${won2str(realFinal)}</div><div class="fs">${sub(last.bal)} · 만 ${p.age+p.horizon}세</div></div>`;
+  $('fstats').innerHTML=
+    `<div class="fpill peri"><span>투입 원금 (합계) · 실질</span><b class="num">${won2str(cumContribReal)}</b><i>명목 ${won2str(cumContribNom)}</i></div>`
+   +`<div class="fpill apr"><span>누적 배당 · 실질 세후</span><b class="num">${won2str(cumDistNetReal)}</b><i>명목 세전 ${won2str(cumDistGross)}</i></div>`
+   +`<div class="fpill sage"><span>누적 인출 · 실질 세후</span><b class="num">${won2str(cumWithNr)}</b><i>명목 세전 ${won2str(cumWithG)}</i></div>`;
+}
+
+function renderBal(p,Y){
+  const W=1000,H=460,mL=48,mR=12,mT=34,mB=46,iw=W-mL-mR,ih=H-mT-mB,n=Y.length;
+  const startYear=Y[0].year;
+  const realBal=Y.map(o=>real(o.bal,o.year,p));
+  const vals=[];Y.forEach((o,k)=>{if(o.bal>0)vals.push(o.bal);if(realBal[k]>0)vals.push(realBal[k]);});
+  let max=Math.max(...vals,1)*1.18,minP=vals.length?Math.min(...vals):max/1000;
+  let floor=Math.max(minP*0.8,1e6);if(floor>=max)floor=max/10;
+  const logF=Math.log10(floor),logM=Math.log10(max),span=(logM-logF)||1;
+  const X=k=>mL+iw*(k+0.5)/n,Yp=v=>mT+ih-(Math.log10(Math.max(v,floor))-logF)/span*ih;
+  const bw=Math.min(34,Math.max(7,iw/n*2.4));
+  const showBar=k=>((Y[k].year-startYear)%5===0)||k===n-1;
+  let accK=-1,reK=-1;Y.forEach((o,k)=>{if(o.phase!=='wd'&&Y[k+1]&&Y[k+1].phase==='wd')reK=k;if(o.phase==='acc'&&Y[k+1]&&Y[k+1].phase!=='acc')accK=k;});
+  let svg='';
+  function band(k0,k1,fill){if(k1<k0)return;const x0=mL+iw*Math.max(0,k0)/n,x1=mL+iw*Math.min(n,k1+1)/n;svg+=`<rect x="${x0.toFixed(1)}" y="${mT}" width="${(x1-x0).toFixed(1)}" height="${ih}" fill="${fill}" opacity="0.5"/>`;}
+  band(0,accK<0?0:accK,'#eaf6ef');band((accK<0?0:accK)+1,reK<0?(accK<0?0:accK):reK,'#eaf0fd');band((reK<0?0:reK)+1,n-1,'#fdf2e2');
+  // 로그 격자: 10배(주축, 라벨) + 2~9×10^k(보조축, 2·5는 옅은 라벨)
+  const lo=Math.floor(Math.log10(floor)),hi=Math.ceil(Math.log10(max));
+  for(let pw=lo;pw<=hi;pw++)for(let m=1;m<10;m++){const val=m*Math.pow(10,pw);if(val<floor||val>max)continue;const yy=Yp(val),major=(m===1);
+    svg+=`<line x1="${mL}" y1="${yy.toFixed(1)}" x2="${W-mR}" y2="${yy.toFixed(1)}" stroke="${major?'#d9dee6':'#eef2f7'}" stroke-width="${major?1:0.6}"/>`;
+    if(major||m===2||m===5)svg+=`<text x="${(mL-5).toFixed(1)}" y="${(yy+3).toFixed(1)}" font-size="${major?10.5:9}" fill="${major?'#8a93a1':'#bcc3cf'}" text-anchor="end">${gridLabel(val)}</text>`;}
+  // 그룹 막대: 실질(진한 핑크·주) + 명목(옅은 핑크) — 5년마다
+  const pts=[];Y.forEach((o,k)=>{if(showBar(k)&&o.bal>0)pts.push(k);});
+  const clW=Math.min(48,Math.max(18,iw/n*4.4)),gap=clW*0.14,barW=(clW-gap)/2,bot=mT+ih;
+  pts.forEach(k=>{const cx=X(k),yR=Yp(realBal[k]),yN=Yp(Y[k].bal);
+    const xR=cx-clW/2,xN=cx-clW/2+barW+gap;
+    svg+=`<rect x="${xN.toFixed(1)}" y="${yN.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,bot-yN).toFixed(1)}" rx="2.5" fill="#f4aecb"/>`;
+    svg+=`<rect x="${xR.toFixed(1)}" y="${yR.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,bot-yR).toFixed(1)}" rx="2.5" fill="#db4a8b" stroke="#c02d72" stroke-width="0.7"/>`;
+    let yy=Math.min(yR,yN)-6;if(yy<mT+9)yy=Math.max(yR,yN)+12;
+    svg+=`<text x="${(xR+barW/2).toFixed(1)}" y="${yy.toFixed(1)}" font-size="9.5" fill="#b32a6e" font-weight="800" text-anchor="middle">${labelShort(realBal[k])}</text>`;});
+  function lab(k0,k1,t,col){if(k1<k0)return;const xc=(X(Math.max(0,k0))+X(Math.min(n-1,k1)))/2;svg+=`<text x="${xc.toFixed(1)}" y="${(mT-12).toFixed(1)}" font-size="11" font-weight="700" fill="${col}" text-anchor="middle">${t}</text>`;}
+  lab(0,accK<0?0:accK,'적립','#1f8a55');if(reK>(accK<0?0:accK))lab((accK<0?0:accK)+1,reK,'재투자','#2f5fd0');lab((reK<0?0:reK)+1,n-1,'인출','#c9821b');
+  if(p.depYear){const dk=Y.findIndex(o=>o.year===p.depYear);if(dk>=0){const xx=X(dk);svg+=`<line x1="${xx.toFixed(1)}" y1="${mT}" x2="${xx.toFixed(1)}" y2="${(mT+ih).toFixed(1)}" stroke="#ef5b5b" stroke-width="1.6" stroke-dasharray="4 4"/><text x="${xx.toFixed(1)}" y="${(mT+13).toFixed(1)}" font-size="10.5" fill="#ef5b5b" text-anchor="middle" font-weight="700">고갈 ${p.depYear}</text>`;}}
+  // x축: 연도 + 나이 (5년마다)
+  Y.forEach((o,k)=>{if(!showBar(k))return;const x=X(k),age=p.age+(o.year-startYear);
+    svg+=`<line x1="${x.toFixed(1)}" y1="${(mT+ih).toFixed(1)}" x2="${x.toFixed(1)}" y2="${(mT+ih+4).toFixed(1)}" stroke="#cbd2db" stroke-width="1"/>`;
+    svg+=`<text x="${x.toFixed(1)}" y="${(H-26).toFixed(1)}" font-size="11" fill="#525c6b" text-anchor="middle" font-weight="600">${o.year}</text>`;
+    svg+=`<text x="${x.toFixed(1)}" y="${(H-11).toFixed(1)}" font-size="10" fill="#8a93a1" text-anchor="middle">${age}세</text>`;});
+  Y.forEach((o,k)=>{svg+=`<circle class="hv" data-k="${k}" cx="${X(k).toFixed(1)}" cy="${Yp(o.bal).toFixed(1)}" r="9" fill="transparent"/>`;});
+  $('balChart').innerHTML=svg;
+  $('legBal').innerHTML=`<span><i style="background:#db4a8b"></i><b>실질 잔고</b></span><span><i style="background:#f4aecb"></i>명목 잔고</span><span style="color:#8a93a1">세로축 로그 · 그룹 막대 · 막대값=실질 · 5년</span>`;
+  const tip=$('tipBal'),svgEl=$('balChart');
+  svgEl.querySelectorAll('.hv').forEach(c=>{
+    c.addEventListener('mouseenter',()=>{const o=Y[+c.dataset.k];
+      tip.innerHTML=`<b>${o.year}년 · ${p.age+(o.year-startYear)}세</b><div class="r"><span>실질 잔고</span><b>${won2str(real(o.bal,o.year,p))}</b></div><div class="r"><span class="re">명목</span><span class="re">${won2str(o.bal)}</span></div><div class="r"><span>연배당(세전)</span><span>실질 ${manStr(real(o.dist,o.year,p))}</span></div>`;
+      tip.style.opacity=1;const r=svgEl.getBoundingClientRect(),wr=svgEl.closest('.chart-wrap').getBoundingClientRect();
+      tip.style.left=Math.min((+c.getAttribute('cx'))/W*r.width,wr.width-180)+'px';tip.style.top=((+c.getAttribute('cy'))/H*r.height-10)+'px';});
+    c.addEventListener('mouseleave',()=>tip.style.opacity=0);
+  });
+}
+
+function renderDiv(p,Y){
+  const W=1000,H=360,mL=48,mR=12,mT=24,mB=42,iw=W-mL-mR,ih=H-mT-mB,n=Y.length;
+  const startYear=Y[0].year;
+  // 3계열: 실질 세후(net, 강조) · 실질 세전(gross real) · 명목 세전(gross nominal)
+  const realNetV=Y.map(o=>real(o.dist,o.year,p)*(1-divTaxRate(p,o.year,o.dist)));
+  const realGrossV=Y.map(o=>real(o.dist,o.year,p));
+  const nomV=Y.map(o=>o.dist);
+  const wnetV=Y.map(o=>o.phase==='wd'?real(o.withN,o.year,p):0); // 실질 세후 연금 인출(연)
+  const realV=realNetV; // 라벨/대표값 = 실질 세후
+  const pos=[];Y.forEach((o,k)=>{[realNetV[k],realGrossV[k],nomV[k],wnetV[k]].forEach(v=>{if(v>0)pos.push(v);});});
+  let max=Math.max(...pos,1)*1.25,minP=pos.length?Math.min(...pos):max/1000;
+  let floor=Math.max(minP*0.8,1e5);if(floor>=max)floor=max/10;
+  const logF=Math.log10(floor),logM=Math.log10(max),span=(logM-logF)||1;
+  const Yp=v=>mT+ih-(Math.log10(Math.max(v,floor))-logF)/span*ih,X=k=>mL+iw*(k+0.5)/n;
+  const bw=Math.min(34,Math.max(7,iw/n*2.4));
+  const showBar=k=>((Y[k].year-startYear)%5===0)||k===n-1;
+  let accK=-1,reK=-1;Y.forEach((o,k)=>{if(o.phase!=='wd'&&Y[k+1]&&Y[k+1].phase==='wd')reK=k;if(o.phase==='acc'&&Y[k+1]&&Y[k+1].phase!=='acc')accK=k;});
+  let svg='';
+  function band(k0,k1,fill){if(k1<k0)return;const x0=mL+iw*Math.max(0,k0)/n,x1=mL+iw*Math.min(n,k1+1)/n;svg+=`<rect x="${x0.toFixed(1)}" y="${mT}" width="${(x1-x0).toFixed(1)}" height="${ih}" fill="${fill}" opacity="0.5"/>`;}
+  band(0,accK<0?0:accK,'#eaf6ef');band((accK<0?0:accK)+1,reK<0?(accK<0?0:accK):reK,'#eaf0fd');band((reK<0?0:reK)+1,n-1,'#fdf2e2');
+  // 로그 격자 + 보조축
+  const lo=Math.floor(Math.log10(floor)),hi=Math.ceil(Math.log10(max));
+  for(let pw=lo;pw<=hi;pw++)for(let m=1;m<10;m++){const val=m*Math.pow(10,pw);if(val<floor||val>max)continue;const yy=Yp(val),major=(m===1);
+    svg+=`<line x1="${mL}" y1="${yy.toFixed(1)}" x2="${W-mR}" y2="${yy.toFixed(1)}" stroke="${major?'#d9dee6':'#eef2f7'}" stroke-width="${major?1:0.6}"/>`;
+    if(major||m===2||m===5)svg+=`<text x="${(mL-5).toFixed(1)}" y="${(yy+3).toFixed(1)}" font-size="${major?10:9}" fill="${major?'#8a93a1':'#bcc3cf'}" text-anchor="end">${gridLabel(val)}</text>`;}
+  // 5년 표본 묶음 막대 — 4계열: 연금 인출(최전방·최강조) · 실질 세후 배당 · 실질 세전 · 명목 세전
+  const pts=[];Y.forEach((o,k)=>{if(showBar(k)&&(o.dist>0||wnetV[k]>0))pts.push(k);});
+  const clW=Math.min(66,Math.max(28,iw/n*5.8)),gap=clW*0.05,bot=mT+ih;
+  const bU=(clW-3*gap)/4.4, bW=bU*1.4; // 연금 인출 막대 1.4배 강조
+  pts.forEach(k=>{const cx=X(k);
+    const x0=cx-clW/2;            // 연금 인출 (최전방·강조)
+    const x1=x0+bW+gap;          // 실질 세후 배당
+    const x2=x1+bU+gap;          // 실질 세전 배당
+    const x3=x2+bU+gap;          // 명목 세전 배당
+    const yIn=wnetV[k]>0?Yp(wnetV[k]):bot, y1=Yp(realNetV[k]),y2=Yp(realGrossV[k]),y3=Yp(nomV[k]);
+    if(nomV[k]>0){
+      svg+=`<rect x="${x3.toFixed(1)}" y="${y3.toFixed(1)}" width="${bU.toFixed(1)}" height="${Math.max(0,bot-y3).toFixed(1)}" rx="2" fill="#cfe0f7"/>`;
+      svg+=`<rect x="${x2.toFixed(1)}" y="${y2.toFixed(1)}" width="${bU.toFixed(1)}" height="${Math.max(0,bot-y2).toFixed(1)}" rx="2" fill="#6aa0e5"/>`;
+      svg+=`<rect x="${x1.toFixed(1)}" y="${y1.toFixed(1)}" width="${bU.toFixed(1)}" height="${Math.max(0,bot-y1).toFixed(1)}" rx="2.5" fill="#2563c9"/>`;
+    }
+    if(wnetV[k]>0)svg+=`<rect x="${x0.toFixed(1)}" y="${yIn.toFixed(1)}" width="${bW.toFixed(1)}" height="${Math.max(0,bot-yIn).toFixed(1)}" rx="2.5" fill="#7c3aed" stroke="#5b21b6" stroke-width="1"/>`;
+    // 이중 라벨(월액): 연금 인출(보라) 위 / 세후 배당(블루) 아래
+    const lcx=x0+(bW+gap+bU)/2;
+    const topY=Math.min(wnetV[k]>0?yIn:bot, nomV[k]>0?y1:bot);
+    let ly=Math.max(mT+18,topY-6);
+    if(nomV[k]>0)svg+=`<text x="${lcx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" fill="#1a4ba0" font-weight="800" text-anchor="middle">배당 ${manStr(realNetV[k]/12)}</text>`;
+    if(wnetV[k]>0)svg+=`<text x="${lcx.toFixed(1)}" y="${(ly-11).toFixed(1)}" font-size="9.5" fill="#6d28d9" font-weight="800" text-anchor="middle">인출 ${manStr(wnetV[k]/12)}</text>`;});
+  // x축: 연도 + 나이 (5년마다)
+  Y.forEach((o,k)=>{if(!showBar(k))return;const x=X(k),age=p.age+(o.year-startYear);
+    svg+=`<text x="${x.toFixed(1)}" y="${(H-22).toFixed(1)}" font-size="11" fill="#525c6b" text-anchor="middle" font-weight="600">${o.year}</text>`;
+    svg+=`<text x="${x.toFixed(1)}" y="${(H-9).toFixed(1)}" font-size="10" fill="#8a93a1" text-anchor="middle">${age}세</text>`;});
+  Y.forEach((o,k)=>{svg+=`<rect class="hvd" data-k="${k}" x="${(X(k)-iw/n/2).toFixed(1)}" y="${mT}" width="${(iw/n).toFixed(1)}" height="${ih}" fill="transparent"/>`;});
+  $('divChart').innerHTML=svg;
+  $('legDiv').innerHTML=`<span><i style="background:#7c3aed"></i><b>연금 인출 (실질 세후)</b></span><span><i style="background:#2563c9"></i>실질 배당 (세후)</span><span><i style="background:#6aa0e5"></i>실질 배당 (세전)</span><span><i style="background:#cfe0f7"></i>명목 배당 (세전)</span><span style="color:#8a93a1">머리숫자=월액 · 로그 · 5년</span>`;
+  const tip=$('tipDiv'),svgEl=$('divChart');
+  svgEl.querySelectorAll('.hvd').forEach(c=>{
+    c.addEventListener('mouseenter',()=>{const o=Y[+c.dataset.k];const rGross=real(o.dist,o.year,p),rNet=rGross*(1-divTaxRate(p,o.year,o.dist));
+      tip.innerHTML=`<b>${o.year}년 · ${p.age+(o.year-startYear)}세</b>`+(o.phase==='wd'?`<div class="r"><span style="color:#6d28d9;font-weight:800">월 연금 인출 실질 세후</span><b style="color:#6d28d9">${manStr(real(o.withN,o.year,p)/12)}</b></div>`:'')+`<div class="r"><span>월배당 <b>실질 세후</b></span><b>${manStr(rNet/12)}</b></div><div class="r"><span class="re">월배당 실질 세전</span><span class="re">${manStr(rGross/12)}</span></div><div class="r"><span class="re">월배당 명목 세전</span><span class="re">${manStr(o.dist/12)}</span></div>`;
+      tip.style.opacity=1;const r=svgEl.getBoundingClientRect(),wr=svgEl.closest('.chart-wrap').getBoundingClientRect();
+      tip.style.left=Math.min(X(+c.dataset.k)/W*r.width,wr.width-180)+'px';tip.style.top='6px';});
+    c.addEventListener('mouseleave',()=>tip.style.opacity=0);
+  });
+}
+
+function renderTbl(p,Y){
+  const startYear=Y[0].year;
+  $('tbl').querySelector('thead').innerHTML='<tr>'+[
+    '연도','나이','단계',
+    '연 적립/인출<br><span class="hsub">실질 세후 / 명목 세전</span>',
+    '연 배당<br><span class="hsub">실질 세후 / 명목 세전</span>',
+    '월 배당<br><span class="hsub">실질 세후 / 명목 세전</span>',
+    '연말 잔고<br><span class="hsub">실질 / 명목</span>'
+  ].map(h=>`<th>${h}</th>`).join('')+'</tr>';
+  const phMap={acc:['acc','적립'],re:['re','재투자'],wd:['wd','인출']};
+  const line=(realStr,nomStr,sign='')=>`<b class="rmain">${sign}${realStr}</b> <span class="nsub">${nomStr}</span>`;
+  $('tbl').querySelector('tbody').innerHTML=Y.map(o=>{
+    const age=p.age+(o.year-startYear),ph=phMap[o.phase],y=o.year;
+    let flow;
+    if(o.phase==='wd')flow=line(manStr(real(o.withN,y,p)),manStr(o.withG),'−');
+    else if(o.contrib>0)flow=line(manStr(real(o.contrib,y,p)),manStr(o.contrib),'+');
+    else flow='—';
+    const rate=divTaxRate(p,o.year,o.dist);
+    const dCell=o.dist>0?line(manStr(real(o.dist,y,p)*(1-rate)),manStr(o.dist)):'—';
+    const mCell=o.lastDist>0?line(manStr(real(o.lastDist,y,p)*(1-rate)),manStr(o.lastDist)):'—';
+    const bCell=line(balEok(real(o.bal,y,p)),balEok(o.bal));
+    return `<tr><td>${o.year}</td><td>${age}세</td><td><span class="ph ${ph[0]}">${ph[1]}</span></td><td>${flow}</td><td>${dCell}</td><td>${mCell}</td><td class="bal">${bCell}</td></tr>`;
+  }).join('');
+}
+
+// 전체 시뮬레이션(적립→재투자→인출) 최종 잔고를 3가지 독립 방법으로 교차검산
+function verifyFull(p){
+  const sim=simulate(p);
+  const mEngine=sim.rows[sim.rows.length-1].bal;
+  // B: 독립 전체 재구현 (별도 단일 루프)
+  const trMa=Math.pow(1+p.trAcc,1/12)-1,trMw=Math.pow(1+p.trWd,1/12)-1,dM=p.dy/12,pMw=trMw-dM,c=p.contrib*1e4;
+  let inv=p.init*1e4,cash=0;
+  for(let i=p.iStart;i<=p.iEnd;i++){const dg=dM*inv;
+    if(i<=p.iAcc){inv=inv*(1+trMa)+c;if(p.acct==='normal')inv-=dg*0.154;}
+    else if(i<=p.iRe){inv=inv*(1+trMa);if(p.acct==='normal')inv-=dg*0.154;}
+    else{inv=inv*(1+pMw);const w=wdAmount(p,i);const dn=(p.acct==='normal')?dg*0.846:dg;let s=dn-w;
+      if(s>=0){if(p.surplus==='reinvest')inv+=s;else cash+=s;}
+      else{let d=-s;if(cash>=d)cash-=d;else{d-=cash;cash=0;inv-=d;}}if(inv<0)inv=0;}}
+  const mIndep=inv+cash;
+  // C: 폐쇄형 체이닝 (적립 폐쇄형 → W_re → 인출 연블록 폐쇄형) — 선형 구간만
+  const va=verify(p),vw=verifyWd(p,sim);
+  const r=(p.acct==='normal')?(trMw-0.154*dM):trMw,nWd=p.iEnd-p.iRe;
+  const wAt=mi=>{const gi=p.iRe+1+mi;let netR;if(mi<(p.s1End+1)*12)netR=p.amt1*1e4;else if(mi<(p.s2End+1)*12)netR=p.amt2*1e4;else netR=p.amt3*1e4;let rate;if(p.acct!=='pension')rate=0.154;else{const age=p.age+Math.floor((gi-p.iStart)/12),ageRate=age<70?0.055:(age<80?0.044:0.033);rate=(netR*12/(1-ageRate))<=1500*1e4?ageRate:0.165;}return netR*Math.pow(1+p.infl,idxYear(gi)-p.startYear)/(1-rate);};
+  let mClosed=va.m2,bs=0;
+  while(bs<nWd){let be=bs+1;const w0=wAt(bs);while(be<nWd&&Math.abs(wAt(be)-w0)<1e-6)be++;const nb=be-bs,g=Math.pow(1+r,nb);mClosed=mClosed*g-(r>0?w0*((g-1)/r):w0*nb);bs=be;}
+  const linear=(p.surplus==='reinvest'&&vw.engDep<0);
+  const arr=linear?[mEngine,mIndep,mClosed]:[mEngine,mIndep];
+  const avg=arr.reduce((a,b)=>a+b,0)/arr.length;
+  const dev=Math.max(...arr.map(v=>Math.abs(v-avg)))/Math.max(Math.abs(avg),1)*100;
+  return{mEngine,mIndep,mClosed,linear,dev};
+}
+
+function renderVerify(p){
+  // 전체 3중 교차검산 (최종 잔고)
+  const F=verifyFull(p),fok=F.dev<0.5;
+  $('vminiFull').innerHTML=`<span class="ok${fok?'':' bad'}">${fok?'✓':'△'} 전체 시뮬레이션 ${F.linear?'3중':'2중'} 교차검산 · 최종 잔고</span>`
+    +`<span class="v"><b>①월별엔진</b> ${won2str(F.mEngine)}</span><span class="sep">=</span>`
+    +`<span class="v"><b>②독립 전체재구현</b> ${won2str(F.mIndep)}</span>`
+    +(F.linear?`<span class="sep">=</span><span class="v"><b>③폐쇄형 체이닝</b> ${won2str(F.mClosed)}</span>`:`<span class="sep">·</span><span style="color:var(--faint)">③폐쇄형은 비선형(현금보관/고갈) 구간 미적용</span>`)
+    +`<span class="sep">·</span><span>편차 ${F.dev.toFixed(3)}%</span>`;
+  const V=verify(p);const{m1,m2,m3}=V;const avg=(m1+m2+m3)/3;
+  const dev=Math.max(Math.abs(m1-avg),Math.abs(m2-avg),Math.abs(m3-avg))/avg*100;const ok=dev<0.5;
+  const initPart=V.init0>0
+    ?`<span class="sep">·</span><span>구성: 초기 <b>${won2str(V.init0)}</b>→복리 ${won2str(V.initFV)} + 적립→복리 ${won2str(V.contribFV)}</span><span class="sep">·</span><span class="ok${V.initIsoDev<0.5?'':' bad'}">초기금 격리검산 편차 ${V.initIsoDev.toFixed(3)}%</span>`
+    :`<span class="sep">·</span><span style="color:var(--faint)">초기 투자금 0</span>`;
+  $('vminiAcc').innerHTML=`<span class="ok${ok?'':' bad'}">${ok?'✓':'△'} 적립·재투자기 검증 · 3중 교차</span><span class="v"><b>월별엔진</b> ${won2str(m1)}</span><span class="sep">=</span><span class="v"><b>폐쇄형</b> ${won2str(m2)}</span><span class="sep">=</span><span class="v"><b>납입합산</b> ${won2str(m3)}</span><span class="sep">·</span><span>편차 ${dev.toFixed(3)}% · 인출 직전 잔고</span>${initPart}`;
+
+  // 인출기 검증
+  const w=verifyWd(p,CUR.sim);
+  const depTxt=w.engDep<0?'미고갈':`${w.engDep}개월차 고갈(엔진=독립 ${w.engDep===w.indDep?'일치 ✓':'불일치 △'})`;
+  let html,wok;
+  if(w.linear){
+    const dF=Math.max(Math.abs(w.m1-w.m2),Math.abs(w.m1-w.m4))/Math.max(Math.abs(w.m1),1)*100;
+    const d=Math.max(dF,w.reDev);wok=d<0.5;
+    html=`<span class="ok${wok?'':' bad'}">${wok?'✓':'△'} 인출기 검증 · 4중 교차</span>`
+      +`<span class="v"><b>월별엔진</b> ${won2str(w.m1)}</span><span class="sep">=</span>`
+      +`<span class="v"><b>폐쇄형(단계연금식)</b> ${won2str(w.m2)}</span><span class="sep">=</span>`
+      +`<span class="v"><b>독립재구현</b> ${won2str(w.m4)}</span><span class="sep">·</span>`
+      +`<span class="v"><b>역산</b> W_re 복원 ${won2str(w.m3)} vs 실제 ${won2str(w.W_re)} (편차 ${w.reDev.toFixed(3)}%)</span><span class="sep">·</span>`
+      +`<span>최종편차 ${dF.toFixed(3)}% · 인출 종료 잔고 · ${depTxt}</span>`;
+  }else{
+    const d=Math.abs(w.m1-w.m4)/Math.max(Math.abs(w.m1),1)*100;wok=d<0.5;
+    const why=p.surplus==='cash'?'현금보관(잉여 0% 적치)':'자금 고갈(원금 floor)';
+    html=`<span class="ok${wok?'':' bad'}">${wok?'✓':'△'} 인출기 검증 · 2중 교차</span>`
+      +`<span class="v"><b>월별엔진</b> ${won2str(w.m1)}</span><span class="sep">=</span>`
+      +`<span class="v"><b>독립재구현</b> ${won2str(w.m4)}</span><span class="sep">·</span>`
+      +`<span>편차 ${d.toFixed(3)}% · 인출 종료 잔고 · ${depTxt}</span><span class="sep">·</span>`
+      +`<span style="color:var(--faint)">폐쇄형·역산은 비선형 구간(${why})이라 미적용</span>`;
+  }
+  $('vminiWd').innerHTML=html;
+}
+
+function bindSeg(id,key){$(id).querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$(id).querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S[key]=b.dataset.v;recalc();}));}
+bindSeg('seg-acct','acct');bindSeg('seg-surplus','surplus');
+$('tr').addEventListener('input',()=>{$('trVal').innerHTML=(+$('tr').value).toFixed(1)+'<small>%</small>';recalc();});
+$('trPre').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('tr').value=b.dataset.v;$('trVal').innerHTML=(+b.dataset.v).toFixed(1)+'<small>%</small>';recalc();}));
+$('infl').addEventListener('input',()=>{$('inflVal').innerHTML=(+$('infl').value).toFixed(1)+'<small>%</small>';recalc();});
+$('inflPre').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('infl').value=b.dataset.v;$('inflVal').innerHTML=(+b.dataset.v).toFixed(1)+'<small>%</small>';recalc();}));
+$('dyield').addEventListener('input',()=>{$('dyVal').innerHTML=(+$('dyield').value).toFixed(1)+'<small>%</small>';recalc();});
+$('dyPre').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('dyield').value=b.dataset.v;$('dyVal').innerHTML=(+b.dataset.v).toFixed(1)+'<small>%</small>';recalc();}));
+['age','init','contrib','accStartY','accStartM','accEndY','accEndM','endAge','infl','s1End','s2End','amt1','amt2','amt3'].forEach(id=>{$(id).addEventListener('input',recalc);$(id).addEventListener('change',recalc);});
+window.addEventListener('resize',()=>{if(CUR){renderBal(CUR.p,CUR.Y);renderDiv(CUR.p,CUR.Y);}});
+$('printBtn').addEventListener('click',()=>window.print());
+// 디자인 토글 (새 ⇄ 기존) — 즉시 복귀 가능, 가능하면 선택 저장
+(function(){
+  let saved=null;try{saved=localStorage.getItem('penTheme');}catch(e){}
+  function apply(t){
+    if(t==='prev')document.documentElement.setAttribute('data-theme','prev');
+    else document.documentElement.removeAttribute('data-theme');
+    $('themeBtn').textContent=(t==='prev')?'🎨 디자인: 기존 버전':'🎨 디자인: 새 버전';
+  }
+  apply(saved==='prev'?'prev':'soft');
+  $('themeBtn').addEventListener('click',()=>{
+    const cur=document.documentElement.getAttribute('data-theme')==='prev'?'prev':'soft';
+    const next=cur==='prev'?'soft':'prev';apply(next);
+    try{localStorage.setItem('penTheme',next);}catch(e){}
+    if(typeof CUR!=='undefined'&&CUR){renderBal(CUR.p,CUR.Y);renderDiv(CUR.p,CUR.Y);}
+  });
+})();
+recalc();
+</script>
+</body>
+</html>
